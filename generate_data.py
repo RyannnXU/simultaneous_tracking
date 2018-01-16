@@ -14,21 +14,6 @@ Sigma = np.diag([1.0e-10, 1.0e-6, 1.0e-10, 1.0e-6])
 INITIAL_STATE  = np.array([0, 0.05, 0, 0.05])
 SPEED_LIM_RATE = 0.2
 
-UP     = 2
-DOWN   = 0
-LEFT   = 0
-RIGZHT = 2
-
-# # --- position of camera
-# RECTS = {1: {'fov_center': (1.3, 1.0), 'fov_size': (0.4, 0.4), 'fov_angle': 0},
-# 			  2: {'fov_center': (1.0, 0.2), 'fov_size': (0.4, 0.4), 'fov_angle': 90},
-# 			  3: {'fov_center': (1.0, 1.8), 'fov_size': (0.4, 0.4), 'fov_angle': -90},
-# 			  4: {'fov_center': (0.2, 0.2), 'fov_size': (0.4, 0.4), 'fov_angle': 45},
-# 			  5: {'fov_center': (1.8, 0.2), 'fov_size': (0.4, 0.4), 'fov_angle': 135},
-# 			  6: {'fov_center': (0.2, 1.8), 'fov_size': (0.4, 0.4), 'fov_angle': -45},
-# 			  7: {'fov_center': (1.8, 1.8), 'fov_size': (0.4, 0.4), 'fov_angle': -135},
-# 			  8: {'fov_center': (0.7, 1.0), 'fov_size': (0.4, 0.4), 'fov_angle': 180}}
-
 
 def compute_vertices(rects):
 
@@ -70,7 +55,7 @@ def compute_vertices(rects):
 
 def one_step_bouncing_walk(current_state):
 	'''
-	One step random walk, the agent will bounce back if come against the wall (default to be x(0, 2) y(0, 2));  There will be random noise adding to the position and speed;  The speed are restricted to (0.8, 1.2) of original speed in case the speed becomes too big.
+	One step random walk, the agent will bounce back if come against the wall (default to be x(0, 2) y(0, 2));  There will be random noise adding to the position and speed;  The speed are restricted to (0.8, 1.2) times of original speed in case the speed becomes too big.
 
 	Input:   current_state [p_x, v_x, p_y, v_y]
 	Out_put: next_state [p_x, v_x, p_y, v_y]
@@ -125,11 +110,37 @@ def bouncing_ball(T):
 	return current_state, np.array(real_trajectory)
 
 
-def generate_data(rects):
+def rotate_around_origin(rotate_points, theta):
+
+	'''
+	Rotate a point around a center_point for 'theta' degree anticlockwisely, compute the new coordinate
+
+	Input:  center_point, rotate_point, theta
+	Output: [x_r, y_r]  # rotated point
+	'''
+
+	theta = np.radians(theta)
+	absolute_coords = []
+	center_point = [0., 0.]
+
+	for ii in range(len(rotate_points)):
+		rotate_point = rotate_points[ii]
+		relative_x = rotate_point[0] - center_point[0]
+		relative_y = rotate_point[1] - center_point[1]
+		relative_coord = [relative_x * np.cos(theta) - relative_y * np.sin(theta), relative_x * np.sin(theta) + relative_y * np.cos(theta)]
+		absolute_coord = [relative_coord[0] + center_point[0], relative_coord[1] + center_point[1]]
+		absolute_coords.append(np.array(absolute_coord))
+
+	absolute_coords = np.array(absolute_coords)
+
+	return np.array(absolute_coords)
+
+
+def generate_data(rects, time_steps):
 
 	# --- generate the trajectory and patches
 	rects_with_vertices = compute_vertices(rects)  # camera FOVs
-	_, traj = bouncing_ball(1000)
+	_, traj = bouncing_ball(time_steps)
 	points  = np.array([traj[:, 0], traj[:, 2]]).T
 	idx     = np.arange(points.shape[0])
 
@@ -140,21 +151,27 @@ def generate_data(rects):
 		ii = i + 1
 		rect = rects_with_vertices[ii]
 		fov_vertices = rect['fov_vertices']
+		fov_angle    = rect['fov_angle']
 
 		# --- check which points lie in with camera FOV
 		path0 = path.Path(fov_vertices)
 		flag  = path0.contains_points(points)
 		inside_idx   = idx[flag]
-		fov_traj     = points[flag] - rect['fov_center']  # store relative coordinate to center
-		fov_traj_idx = np.concatenate((fov_traj, np.expand_dims(inside_idx, axis=1)), axis=1)
-		rect['fov_traj'] = fov_traj_idx
+		fov_traj     = points[flag] - rect['fov_center']  # transplace coordinate to center
+		fov_traj     = rotate_around_origin(fov_traj, -fov_angle)  # rotate coordinate to center
+
+		if len(fov_traj) > 0:
+			fov_traj_idx = np.concatenate((fov_traj, np.expand_dims(inside_idx, axis=1)), axis=1)
+			rect['fov_traj'] = fov_traj_idx
+		else:
+			rect['fov_traj'] = fov_traj
 		fov_data[ii] = rect
 
 	data = {}
 	data['fov'] = fov_data
 	data['groundturth_traj'] = traj
 	file_name = 'data/fov_data.pkl'
-	pkl.dump(data, open(file_name, 'wb'))
+	# pkl.dump(data, open(file_name, 'wb'))
 
 	return data
 

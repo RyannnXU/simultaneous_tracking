@@ -83,12 +83,23 @@ def plot_traj(traj, rects):
 		ii = i + 1
 		rect = lowerleft_rects[ii]
 		lowerleft_vertice = rect['lowerleft_vertice']
-		fov_angle  = rect['fov_angle'] % 90.  # needs attention, this is for plot, we already found the lowerleft vertice, so the rotation when ploting is either 0 or 45.
+		fov_angle  = rect['fov_angle']  # needs attention, this is for plot, we already found the lowerleft vertice, so the rotation when ploting is either 0 or 45.
 		fov_size   = rect['fov_size']
 		fov_center = rect['fov_center']
-		patch = patches.Rectangle(lowerleft_vertice, fov_size[0], fov_size[1], angle=fov_angle, ls=None, color='k', alpha=0.20, fill=True)
+		patch = patches.Rectangle(lowerleft_vertice, fov_size[0], fov_size[1], angle=fov_angle % 90., ls=None, color='k', alpha=0.20, fill=True)
 		ax.add_patch(patch)
-		ax.text(fov_center[0], fov_center[1], str(ii), fontsize=10)
+
+		# --- plot coordinates
+		cood_len = 0.1
+		angle_x = np.radians(fov_angle)
+		angle_y = np.radians(fov_angle + 90.)
+		ax.arrow(fov_center[0], fov_center[1],
+				cood_len * np.cos(angle_x), cood_len * np.sin(angle_x),
+				head_width=0.02, head_length=0.05, fc='k', ec='k')
+		ax.arrow(fov_center[0], fov_center[1],
+				cood_len * np.cos(angle_y), cood_len * np.sin(angle_y),
+				head_width=0.02, head_length=0.05, fc='k', ec='k')
+		ax.text(fov_center[0] - 0.08, fov_center[1] - 0.08, str(ii), fontsize=10)
 
 	ax.add_patch(patches.Rectangle((-0.0, -0.0), 2.0, 2.0, lw=3, ls=None, fill=False))
 	ax.set_xlim([-0.2, 2.2])
@@ -147,24 +158,34 @@ def plot_fov(data_fov):
 	for i in range(len(data_fov_lowerleft)):
 
 		ii = i + 1
-
 		# --- plot FOVs
 		rect         = data_fov_lowerleft[ii]
-		label_angle  = rect['label_angle'] % 90.
-		fov_angle    = rect['fov_angle'] % 90.
+		# label_angle  = rect['label_angle'] % 90.
+		fov_angle    = rect['fov_angle']
 		fov_center   = rect['fov_center']
 		fov_size     = rect['fov_size']
 		ll_vertice   = rect['lowerleft_vertice']  # lowerleft vertice
-		fov_traj     = rect['fov_traj'][:, :2]
 
-		patch = patches.Rectangle(ll_vertice, fov_size[0], fov_size[1], angle=fov_angle, ls=None, color='k', alpha=0.20, fill=True)
+		patch = patches.Rectangle(ll_vertice, fov_size[0], fov_size[1], angle=fov_angle % 90., ls=None, color='k', alpha=0.20, fill=True)
 		ax.add_patch(patch)
-		ax.text(fov_center[0], fov_center[1], str(ii), fontsize=10)
+
+		# --- plot coordinates
+		cood_len = 0.1
+		angle_x = np.radians(fov_angle)
+		angle_y = np.radians(fov_angle + 90.)
+		ax.arrow(fov_center[0], fov_center[1],
+				cood_len * np.cos(angle_x), cood_len * np.sin(angle_x),
+				head_width=0.02, head_length=0.05, fc='k', ec='k')
+		ax.arrow(fov_center[0], fov_center[1],
+				cood_len * np.cos(angle_y), cood_len * np.sin(angle_y),
+				head_width=0.02, head_length=0.05, fc='k', ec='k')
+		ax.text(fov_center[0] - 0.08, fov_center[1] - 0.08, str(ii), fontsize=10)
 
 		# --- plot trajectories in FOVs
-		rotate_angle   = fov_angle - label_angle
+		rotate_angle   = fov_angle
 
-		if len(fov_traj) > 0:
+		if len(rect['fov_traj']) > 0:
+			fov_traj     = rect['fov_traj'][:, :2]
 			rotated_traj   = rotate_around_origin(fov_traj, rotate_angle) + fov_center
 			ax.plot(rotated_traj[:, 0], rotated_traj[:, 1], 'x', markersize=2)
 
