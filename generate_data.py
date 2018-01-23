@@ -4,14 +4,11 @@
 
 import numpy as np
 import pickle as pkl
+from parameters import *
 from matplotlib import path
 
 # --- Hyper paremeters
-A     = np.array([[1, 0.5, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0.5], [0, 0, 0, 1]])
-mean  = np.array([0, 0, 0, 0])
-Sigma = np.diag([1.0e-10, 1.0e-6, 1.0e-10, 1.0e-6])
-
-INITIAL_STATE  = np.array([0, 0.05, 0, 0.05])
+INITIAL_STATE  = np.array([0, 0.03, 0, 0.05])
 SPEED_LIM_RATE = 0.2
 
 
@@ -55,35 +52,35 @@ def compute_vertices(rects):
 
 def one_step_bouncing_walk(current_state):
 	'''
-	One step random walk, the agent will bounce back if come against the wall (default to be x(0, 2) y(0, 2));  There will be random noise adding to the position and speed;  The speed are restricted to (0.8, 1.2) times of original speed in case the speed becomes too big.
+	One step random walk, the agent will bounce back if come against the wall (default to be x(0, 2) y(0, 2));  There will be random noise adding to the position and speed;  The speed are restricted to (0.8, 1.2) times of initial speed in case the speed becomes too big.
 
-	Input:   current_state [p_x, v_x, p_y, v_y]
-	Out_put: next_state [p_x, v_x, p_y, v_y]
+	Input:  current_state [p_x, v_x, p_y, v_y]
+	Output: next_state [p_x, v_x, p_y, v_y]
 	'''
 
-	v_t  = np.random.multivariate_normal(mean, Sigma)
+	v_t  = np.random.multivariate_normal(MEAN, SIGMA_V2)
 	next_state = np.dot(A, current_state) + v_t
 
 	# --- bounce back from wall
 	if next_state[0] < 0 or next_state[0] > 2:
 
 		next_state[0] = current_state[0]
-		next_state[1] = - current_state[1]
+		next_state[1] = -current_state[1]
 
 	if next_state[2] < 0 or next_state[2] > 2:
 
 		next_state[2] = current_state[2]
-		next_state[3] = - current_state[3]
+		next_state[3] = -current_state[3]
 
-	# --- restrict the speed
-	abs1  = np.absolute(next_state[1])
-	abs3  = np.absolute(next_state[3])
-	sign1 = np.sign(next_state[1])
-	sign3 = np.sign(next_state[3])
-	abs1_clip = np.clip(abs1, INITIAL_STATE[1] * (1 - SPEED_LIM_RATE), INITIAL_STATE[1] * (1 + SPEED_LIM_RATE))
-	abs3_clip = np.clip(abs3, INITIAL_STATE[3] * (1 - SPEED_LIM_RATE), INITIAL_STATE[3] * (1 + SPEED_LIM_RATE))
-	next_state[1] = sign1 * abs1_clip
-	next_state[3] = sign3 * abs3_clip
+	# # --- restrict the speed
+	# abs1  = np.absolute(next_state[1])
+	# abs3  = np.absolute(next_state[3])
+	# sign1 = np.sign(next_state[1])
+	# sign3 = np.sign(next_state[3])
+	# abs1_clip = np.clip(abs1, INITIAL_STATE[1] * (1 - SPEED_LIM_RATE), INITIAL_STATE[1] * (1 + SPEED_LIM_RATE))
+	# abs3_clip = np.clip(abs3, INITIAL_STATE[3] * (1 - SPEED_LIM_RATE), INITIAL_STATE[3] * (1 + SPEED_LIM_RATE))
+	# next_state[1] = sign1 * abs1_clip
+	# next_state[3] = sign3 * abs3_clip
 
 	return next_state
 
