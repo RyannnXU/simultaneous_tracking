@@ -201,41 +201,41 @@ def compute_J(fov_data, chi_t, G, u0, l_r):
 	return J
 
 
-def valid_func():
+# def valid_func():
 
-	# --- valid G matrix is correct
-	T = 100
-	G = compute_G(A, SIGMA_V2, T)
+# 	# --- valid G matrix is correct
+# 	T = 100
+# 	G = compute_G(A, SIGMA_V2, T)
 
-	sigma_inv = np.linalg.inv(SIGMA_V2)
-	A1 = A.T.dot(sigma_inv).dot(A)
+# 	sigma_inv = np.linalg.inv(SIGMA_V2)
+# 	A1 = A.T.dot(sigma_inv).dot(A)
 
-	A2 = A1 + sigma_inv
-	A3 = sigma_inv
+# 	A2 = A1 + sigma_inv
+# 	A3 = sigma_inv
 
-	print(A1.diagonal())
-	print(np.dot(G.T, G).diagonal()[:4])
-	print('\n')
+# 	print(A1.diagonal())
+# 	print(np.dot(G.T, G).diagonal()[:4])
+# 	print('\n')
 
-	print(A2.diagonal())
-	print(np.dot(G.T, G).diagonal()[4:8])
-	print('\n')
+# 	print(A2.diagonal())
+# 	print(np.dot(G.T, G).diagonal()[4:8])
+# 	print('\n')
 
-	print(A3.diagonal())
-	print(np.dot(G.T, G).diagonal()[-4:])
-	print('\n')
+# 	print(A3.diagonal())
+# 	print(np.dot(G.T, G).diagonal()[-4:])
+# 	print('\n')
 
-	# --- second diagonal
-	B1 = -A.T.dot(sigma_inv)
-	print(np.max(B1 - np.dot(G.T, G)[:4, 4:8]))
-	print(np.max(B1 - np.dot(G.T, G)[4:8, 8:12]))
-	print(np.max(B1 - np.dot(G.T, G)[-8:-4, -4:]))
-	print('\n')
+# 	# --- second diagonal
+# 	B1 = -A.T.dot(sigma_inv)
+# 	print(np.max(B1 - np.dot(G.T, G)[:4, 4:8]))
+# 	print(np.max(B1 - np.dot(G.T, G)[4:8, 8:12]))
+# 	print(np.max(B1 - np.dot(G.T, G)[-8:-4, -4:]))
+# 	print('\n')
 
-	B2 = -sigma_inv.dot(A)
-	print(np.max(B2 - np.dot(G.T, G)[4:8, :4]))
-	print(np.max(B2 - np.dot(G.T, G)[8:12, 4:8]))
-	print(np.max(B2 - np.dot(G.T, G)[-4:, -8:-4]))
+# 	B2 = -sigma_inv.dot(A)
+# 	print(np.max(B2 - np.dot(G.T, G)[4:8, :4]))
+# 	print(np.max(B2 - np.dot(G.T, G)[8:12, 4:8]))
+# 	print(np.max(B2 - np.dot(G.T, G)[-4:, -8:-4]))
 
 
 # def optimize(T, chi_t, fov_data):
@@ -254,9 +254,9 @@ def main():
 	G   = compute_G(A, SIGMA_V2, T)
 	chi = np.ones(4 * T + 3 * len(fov_data))
 	u0  = np.array([1.3, 1.0, 0])
-	# r   = compute_r(fov_data, chi, G, u0)
-	# l_r = len(r)
-	# J   = compute_J(fov_data, chi, G, u0, l_r)
+	r   = compute_r(fov_data, chi, G, u0)
+	l_r = len(r)
+	J   = compute_J(fov_data, chi, G, u0, l_r)
 
 	# delta_chi = Variable(len(chi))
 	# obj  = Minimize(sum_squares(J * delta_chi - r))
@@ -266,7 +266,7 @@ def main():
 	# result = prob.solve()
 	# print(delta_chi.value)
 
-	valid_func()
+	# valid_func()
 
 
 if __name__ == '__main__':

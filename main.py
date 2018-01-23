@@ -4,7 +4,7 @@
 import pickle as pkl
 from generate_data import *
 from parameters import *
-from plot_traj import *
+from plot_data import *
 # import pdb
 
 
